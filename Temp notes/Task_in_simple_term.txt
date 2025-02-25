@@ -1,0 +1,43 @@
+Explanation of the Task in Simple Terms
+You have an Elasticsearch (ES) setup running inside Docker. It has two indices (or data collections) for storing candidates and jobs. Your task is to build a REST API that allows users to interact with these indices.
+
+What Your API Needs to Do:
+Retrieve a document by ID
+
+If the user provides a job ID → Return that specific job’s details from Elasticsearch.
+If the user provides a candidate ID → Return that specific candidate’s details from Elasticsearch.
+Find matching candidates/jobs based on filters
+
+If a user provides a job ID → Find candidates that match based on salary, skills, or seniority.
+If a user provides a candidate ID → Find jobs that match based on salary, skills, or seniority.
+The API should return:
+Matching document IDs.
+A relevance score (how well they match the given job/candidate).
+Filters You Need to Implement:
+Salary Match
+
+Find jobs where max salary is greater than or equal to the candidate’s salary expectation.
+Find candidates where salary expectation is less than or equal to the job’s max salary.
+Top Skill Match
+
+Find jobs/candidates that share at least 2 of the top skills.
+Seniority Match
+
+Find jobs/candidates with the same seniority level.
+These filters should be optional and can be used together.
+
+
+
+What You Need to Do:
+Create a FastAPI-based REST API
+
+This will expose HTTP endpoints to interact with Elasticsearch.
+Update docker-compose.yml
+
+Add a new service for your API so it runs inside Docker.
+Write basic API tests
+
+Test fetching by ID and filtering.
+Provide a test coverage report
+
+Show that you tested the main features.
