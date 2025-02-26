@@ -1,0 +1,63 @@
+🎥 Loom Video Script for Job Recruitment API Explanation
+📌 Goal of the Video:
+Briefly introduce the task
+Explain the core functionalities of the API
+Walk through the implementation and code structure
+Demonstrate how to run and test the API
+Summarize key takeaways
+🎬 Script for Loom Video Recording
+1️⃣ Introduction (0:00 - 1:00)
+🔹 "Hi, my name is [Your Name], and in this video, I'll walk you through my implementation of the job recruitment API task."
+
+🔹 "The goal of this task was to create an API that interacts with Elasticsearch indices for job and candidate data, allowing us to fetch documents and search for relevant matches based on specific filters."
+
+🔹 "I'll explain the core functionalities, walk you through the code, and demonstrate how to run and test the API."
+
+2️⃣ Task Breakdown (1:00 - 2:00)
+🔹 "The API has two main functionalities:"
+1️⃣ Retrieving a specific job or candidate document by ID.
+2️⃣ Searching for relevant matches based on filters like salary, top skills, and seniority."
+
+🔹 "The data is stored in Elasticsearch, and our API acts as a bridge to fetch and process this data efficiently."
+
+3️⃣ Code Walkthrough (2:00 - 6:00)
+🌟 main.py - Core API Logic
+🔹 "This is the main FastAPI application that provides two endpoints:"
+
+✅ /get-entity: Fetches a document from Elasticsearch based on its ID.
+✅ /search-matches: Finds relevant jobs or candidates using filters and Elasticsearch queries.
+
+🔹 "For searching, we build a dynamic Elasticsearch query using:
+
+salary_match → Ensures salary expectations align
+top_skill_match → Finds matches with common top skills
+seniority_match → Matches jobs and candidates based on seniority"*
+🔹 "The filters are combined using the should clause, meaning they act as OR conditions, and we also have pagination support."
+
+🧪 test_main.py - API Tests
+🔹 "I wrote unit tests using FastAPI's TestClient to verify API behavior. These tests cover:"
+
+Valid and invalid entity retrieval
+Searching with different filters
+Pagination and max result size handling
+4️⃣ Running the API & Testing (6:00 - 8:00)
+🔹 "Now, let's see the API in action!"
+🔹 "We will use Docker to spin up Elasticsearch and FastAPI together. The steps are:"
+1️⃣ Run docker-compose up --build to start the services.
+2️⃣ Use http://localhost:8000/docs to access the Swagger UI and test the API.
+3️⃣ Run pytest to execute the test cases.
+
+(Screen-share terminal while running the commands and Swagger UI while testing endpoints.)
+
+5️⃣ Conclusion & Submission (8:00 - 9:00)
+🔹 "To summarize, I built a FastAPI service that interacts with Elasticsearch, allowing efficient document retrieval and match searching."
+🔹 "The API follows clean code principles, has structured testing, and is containerized for easy deployment."
+🔹 "This project is available on my GitHub, and I've also documented everything in the README file."
+🔹 "Thank you for watching! If you have any questions, feel free to ask."
+
+🎯 Tips for Recording:
+✅ Keep the video under 10 minutes
+✅ Speak clearly and at a steady pace
+✅ Use visuals like code editor, Swagger UI, and terminal output
+✅ Show real API calls and responses
+✅ Keep it structured but conversational
