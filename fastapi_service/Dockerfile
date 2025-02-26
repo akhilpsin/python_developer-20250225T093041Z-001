@@ -14,5 +14,8 @@ COPY . .
 # Expose the FastAPI port
 EXPOSE 8000
 
+# Run the tests (optional: useful in CI/CD)
+RUN pytest --tb=short --disable-warnings || true
+
 # Run the FastAPI app using Uvicorn
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

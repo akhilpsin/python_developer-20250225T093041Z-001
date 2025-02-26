@@ -1,61 +1,110 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel
 from elasticsearch import Elasticsearch
 
 app = FastAPI()
-es = Elasticsearch("http://elasticsearch:9200")
+MAX_RESULT_SIZE = 200  # Limit on the number of results per request
 
+# Elasticsearch client
+def get_es():
+    #return Elasticsearch("http://localhost:9200") #for local run
+    return Elasticsearch("http://elasticsearch:9200") #for docker
+
+# Request Models
 class SearchFilters(BaseModel):
-    salary_match: bool = False
-    top_skill_match: bool = False
-    seniority_match: bool = False
+    salary_match: bool = True
+    top_skill_match: bool = True
+    seniority_match: bool = True
+    minimum_should_match: int = 1
 
-@app.post("/{entity}/{id}")
-def get_entity(entity: str, id: int):
+class SearchRequest(BaseModel):
+    entity: str
+    id: int
+    filters: SearchFilters
+    from_index: int = 0
+    size: int = 100
+
+class EntityRequest(BaseModel):
+    entity: str
+    id: int
+
+# Validate entity type
+def validate_entity(entity: str):
     if entity not in ["jobs", "candidates"]:
         raise HTTPException(status_code=400, detail="Invalid entity type")
-    
-    doc = es.get(index=entity, id=id, ignore=[404])
-    if not doc or "found" not in doc or not doc["found"]:
-        raise HTTPException(status_code=404, detail="Document not found")
-    
-    return {"id": doc["_id"], "data": doc["_source"]}
 
-@app.post("/search/{entity}/{id}")
-def search_matches(entity: str, id: int, filters: SearchFilters):
-    if entity not in ["jobs", "candidates"]:
-        raise HTTPException(status_code=400, detail="Invalid entity type")
-    
-    index = "candidates" if entity == "jobs" else "jobs"
-    target_doc = es.get(index=entity, id=id, ignore=[404])
-    if not target_doc or "found" not in target_doc or not target_doc["found"]:
-        raise HTTPException(status_code=404, detail="Target document not found")
-    
-    target = target_doc["_source"]
+# Build Elasticsearch query based on filters
+def build_query(entity: str, target: dict, filters: SearchFilters):
     search_filters = []
-    
+
     if filters.salary_match:
-        salary_key = "salary_expectation" if entity == "jobs" else "max_salary"
-        salary_value = {"lte": target["max_salary"]} if entity == "jobs" else {"gte": target["salary_expectation"]}
+        search_filters.append(
+            {"range": {"salary_expectation": {"lte": target["max_salary"]}}} if entity == "jobs"
+            else {"range": {"max_salary": {"gte": target["salary_expectation"]}}}
+        )
 
-        salary_filter = {"range": {salary_key: salary_value}}
+    if filters.top_skill_match and target.get("top_skills"):
+        search_filters.append({
+            "terms_set": {
+                "top_skills": {
+                    "terms": target["top_skills"],
+                    "minimum_should_match_script": {
+                        "source": "Math.min(params.num_terms, 2)",
+                        "params": {"num_terms": len(target["top_skills"])}
+                    }
+                }
+            }
+        })
 
-        search_filters.append(salary_filter)
-    
-    if filters.top_skill_match:
-        min_skills = min(len(target["top_skills"]), 2)
-        skills_filter = {"terms_set": {"top_skills": {"terms": target["top_skills"], "minimum_should_match_script": {"source": f"Math.max(doc['top_skills'].size(), {min_skills})"}}}}
-        search_filters.append(skills_filter)
-    
-    if filters.seniority_match:
-        seniority_value = target.get("seniority", None)
-        if seniority_value:
-            seniority_filter = {"terms": {"seniorities" if entity == "jobs" else "seniority": seniority_value}}
-            search_filters.append(seniority_filter)
-    
-    query = {"query": {"bool": {"should": search_filters}}} if search_filters else {"query": {"match_all": {}}}
-    
+    if filters.seniority_match and "seniorities" in target:
+        search_filters.append(
+            {"terms": {"seniority": target["seniorities"]}} if entity == "jobs"
+            else {"terms": {"seniorities": [target["seniority"]]}}
+        )
+
+    # If no filters then fetch all results
+    if not search_filters:
+        return {"query": {"match_all": {}}, "sort": [{"_score": "desc"}]}
+
+    return {
+        "query": {
+            "bool": {
+                "should": search_filters,
+                "minimum_should_match": filters.minimum_should_match
+            }
+        },
+        "sort": [{"_score": "desc"}]
+    }
+
+# Retrieve a specific job or candidate document from Elasticsearch
+@app.post("/get-entity")
+def get_entity(request: EntityRequest, es: Elasticsearch = Depends(get_es)):
+    validate_entity(request.entity)
+    try:
+        doc = es.get(index=request.entity, id=request.id)
+        return {"id": doc["_id"], "data": doc["_source"]}
+    except Exception:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+# Search for matching jobs or candidates based on filters
+@app.post("/search-matches")
+def search_matches(request: SearchRequest, es: Elasticsearch = Depends(get_es)):
+    validate_entity(request.entity)
+    index = "candidates" if request.entity == "jobs" else "jobs"
+
+    try:
+        target_doc = es.get(index=request.entity, id=request.id)
+        target = target_doc["_source"]
+    except Exception:
+        raise HTTPException(status_code=404, detail="Target document not found")
+
+    query = build_query(request.entity, target, request.filters)
+    query["from"] = request.from_index
+    query["size"] = min(request.size, MAX_RESULT_SIZE)  # Applying size limit
+
     response = es.search(index=index, body=query)
-    results = [{"id": hit["_id"], "relevance_score": hit["_score"], "data": hit["_source"]} for hit in response["hits"]["hits"]]
-    
-    return results
+
+    return {
+        "total_results": response["hits"]["total"]["value"],
+        "results": [{"id": hit["_id"], "relevance_score": hit["_score"]} for hit in response["hits"]["hits"]]
+    }
