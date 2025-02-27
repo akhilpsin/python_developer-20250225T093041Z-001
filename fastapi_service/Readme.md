@@ -1,7 +1,7 @@
 # **API Doccument**
 
 ## **Overview**
-This FastAPI-based job recruitment API is designed to match job postings with potential candidates using Elasticsearch for efficient searching.
+This FastAPI-based API is designed to match job postings with potential candidates using Elasticsearch, as well as retrieve job or candidate data.
 
 ## **Features**
 ✅ Retrieve job or candidate details by ID
