@@ -141,7 +141,7 @@ curl -X 'POST' \
 
 ## **Running Tests**
 
-### Here is a list of all the tests performed in [test_main.py](https://github.com/akhilpsin/python_developer-20250225T093041Z-001/blob/main/fastapi_service/tests/test_main.py)': 
+### Here is a list of all the tests performed in [test_main.py](https://github.com/akhilpsin/python_developer-20250225T093041Z-001/blob/main/fastapi_service/tests/test_main.py): 
 
 #### **Tests for `/get-entity` Endpoint**  
 - **Fetching a valid job or candidate document** (should return a valid response)  
