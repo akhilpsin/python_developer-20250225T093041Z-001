@@ -1,0 +1,8 @@
+# Files to ignore while pushing to git
+
+# Log files
+fastapi_service/logs/
+fastapi_service/logs/*.log
+
+# Environment files
+fastapi_service/.env
