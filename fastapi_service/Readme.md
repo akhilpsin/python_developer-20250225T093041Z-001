@@ -140,10 +140,24 @@ curl -X 'POST' \
 ---
 
 ## **Running Tests**
-To run unit tests, use (can add more test casess here if needed):
+To run unit tests, use :
 ```bash
 pytest "tests/test_main.py"
 ```
+Here is a list of all the tests performed in your code:  
+
+### **Tests for `/get-entity` Endpoint**  
+- ✅ **Fetching a valid job or candidate document** (should return a valid response)  
+- ✅ **Fetching a document with an invalid ID** (should return a `404` error)  
+- ✅ **Fetching a document with an invalid entity type** (should return a `400` error)  
+
+### **Tests for `/search-matches` Endpoint**  
+- ✅ **Searching with a valid entity and filters enabled** (should return valid matches)  
+- ✅ **Searching with an invalid entity type** (should return a `400` error)  
+- ✅ **Searching with a valid entity but invalid ID** (should return a `404` error)  
+- ✅ **Requesting more results than `MAX_RESULT_SIZE`** (should return at most `MAX_RESULT_SIZE` results)  
+- ✅ **Searching with all filters disabled** (should return results but stay within the max limit)  
+- ✅ **Testing pagination** (fetching results from different pages should return different data)  
 
 ---
 
