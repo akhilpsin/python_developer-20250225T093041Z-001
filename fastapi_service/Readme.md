@@ -110,7 +110,10 @@ Find matching job postings or candidates based on filters like salary, skills, a
   ```json
   {
     "total_results": 5,
-    "results": [ { ... }, { ... } ]
+    "results": [
+    {"id": "7","relevance_score": 8}, 
+    { ... }, 
+    { ... } ]
   }
   ```
   
@@ -137,9 +140,9 @@ curl -X 'POST' \
 ---
 
 ## **Running Tests**
-To run unit tests, use:
+To run unit tests, use (can add more test casess here if needed):
 ```bash
-pytest
+pytest "tests/test_main.py"
 ```
 
 ---
