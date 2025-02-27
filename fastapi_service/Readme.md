@@ -4,11 +4,11 @@
 This FastAPI-based API is designed to match job postings with potential candidates using Elasticsearch, as well as retrieve job or candidate data.
 
 ## **Features**
-✅ Retrieve job or candidate details by ID
-✅ Search for matching jobs or candidates with relevance scoring
-✅ Supports filtering by salary, skills, and seniority
-✅ Dockerized for easy deployment
-✅ Includes unit tests for API validation
+✅ Retrieve job or candidate details by ID  
+✅ Search for matching jobs or candidates with relevance scoring  
+✅ Supports filtering by salary, skills, and seniority  
+✅ Dockerized for easy deployment  
+✅ Includes unit tests for API validation  
 
 ## **Installation**
 
@@ -100,7 +100,7 @@ Find matching job postings or candidates based on filters like salary, skills, a
   - `id` _(string/int)_: The unique ID of the job or candidate to match against
   - `filters` _(object)_: Criteria for matching
     - `salary_match` _(boolean)_: Whether salary should match
-    - `top_skill_match` _(boolean)_: Whether top skills should match
+    - `top_skill_match` _(boolean)_: Whether atleast 2 of the top skills should match
     - `seniority_match` _(boolean)_: Whether seniority level should match
     - `minimum_should_match` _(int)_: Minimum number of filter conditions that should match
   - `from_index` _(int)_: Pagination start index
@@ -144,9 +144,4 @@ pytest
 
 ---
 
-## **Deployment**
-To deploy the API using Docker:
-```bash
-docker-compose up -d
-```
 👉 **Note:** The entire project directory must be run for the API to function correctly.

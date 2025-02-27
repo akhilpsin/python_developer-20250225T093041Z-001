@@ -1,4 +1,4 @@
-# Use a lightweight Python image
+# lightweight Python image
 FROM python:3.9.16-slim-buster
 
 # Set the working directory inside the container
@@ -14,7 +14,7 @@ COPY . .
 # Expose the FastAPI port
 EXPOSE 8000
 
-# Run the tests (optional: useful in CI/CD)
+# Runing the tests (optional)
 RUN pytest --tb=short --disable-warnings || true
 
 # Run the FastAPI app using Uvicorn
