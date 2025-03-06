@@ -1,49 +1,166 @@
-# Intro
+# **API Doccument**
 
-For your next step in the application process at Instaffo we'd like you to do the task given below to be able to further assess your skills and knowledge. 
+## **Overview**
+This FastAPI-based API is designed to match job postings with potential candidates using Elasticsearch, as well as retrieve job or candidate data.
 
-**Submission Guidelines:**
+## **Features**
+✅ Retrieve job or candidate details by ID  
+✅ Search for matching jobs or candidates with relevance scoring  
+✅ Supports filtering by salary, skills, and seniority  
+✅ Dockerized for easy deployment  
+✅ Includes unit tests for API validation  
 
-✅ **Code Submission**: Please upload your solution to a **publicly accessible Git repository** and share the link with the person managing your application (e.g., via the chat on instaffo.com).
+## **Installation**
 
-✅ **Video Explanation (Optional but Preferred)**: If possible, please record a **short video** explaining your overall solution (e.g., using [Loom](https://www.loom.com/screen-recorder)), and share the link with us.
+### **Prerequisites**
+- Docker & Docker Compose
+- Python 3.8+
+- Elasticsearch (Docker setup provided)
 
-Code quality (including project structure), dependencies and environment management, documentation (docstrings, comments, README file, etc.) are of utmost importance!
+### **Running Locally**
+1. Clone the repository:
+   ```bash
+   git clone "https://github.com/akhilpsin/python_developer-20250225T093041Z-001.git"
+   cd python_developer-20250225T093041Z-001
+   ```
+2. Start all services using Docker Compose:
+   ```bash
+   docker-compose up --build
+   ```
+3. Access the API at:
+   - **Base URL:** `http://localhost:8000`  
+   - **Interactive FastAPI Docs API Docs:** `http://127.0.0.1:8000/docs`
+   - **Alternative Swagger UI (ReDoc):** `http://127.0.0.1:8000/redoc`
 
-We wish you good luck (and also a lot of fun) with the task! 🍀
+---
 
-# Matching talents and jobs
+## **API Endpoints**
 
-Instaffo is a recruiting platform that makes money by bringing together hiring companies and talents. Companies offer job opportunities and need the right talents to fill their open job positions, talents on the other hand are looking for new job opportunities.
+### **1. Retrieve Document by ID**
+Fetch details of a specific job or candidate using their ID.
 
-One core component of the Instaffo platform is the search functionality, which e.g. enables talents to only see relevant job opportunities.
+- **Endpoint:** `/get-entity`
+- **Method:** `POST`
+- **Request Body:**
+  ```json
+  {
+    "entity": "jobs",
+    "id": "12"
+  }
+  ```
+  **Request Fields:**
+  - `entity` _(string)_: `"jobs"` or `"candidates"`
+  - `id` _(string/int)_: The unique identifier of the job or candidate
 
-# Task
+- **Response:**
+  ```json
+  {
+    "id": "12",
+    "data": { ... }
+  }
+  ```
+  
+🔹 **Sample cURL Request:**
+```bash
+curl -X 'POST' \
+  'http://127.0.0.1:8000/get-entity' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "entity": "jobs",
+  "id": 1
+}'
+```
 
-You are provided with data and a docker-compose.yml file which initializes and populates __2 ES indices - for candidates and jobs__. 
+---
 
-🎯 Your goal is to create a way for the outside world to communicate with the ES indices.
+### **2. Search for Matches**
+Find matching job postings or candidates based on filters like salary, skills, and seniority level.
 
-📌 Implement 2 core functionalities:
+- **Endpoint:** `/search-matches`
+- **Method:** `POST`
+- **Request Body:**
+  ```json
+  {
+    "entity": "jobs",
+    "id": 4,
+    "filters": {
+      "salary_match": true,
+      "top_skill_match": true,
+      "seniority_match": true,
+      "minimum_should_match": 2
+    },
+    "from_index": 0,
+    "size": 100
+  }
+  ```
+  
+  **Request Fields:**
+  - `entity` _(string)_: `"jobs"` or `"candidates"`
+  - `id` _(string/int)_: The unique ID of the job or candidate to match against
+  - `filters` _(object)_: Criteria for matching
+    - `salary_match` _(boolean)_: Whether salary should match
+    - `top_skill_match` _(boolean)_: Whether atleast 2 of the top skills should match
+    - `seniority_match` _(boolean)_: Whether seniority level should match
+    - `minimum_should_match` _(int)_: Minimum number of filter conditions that should match
+  - `from_index` _(int)_: Pagination start index
+  - `size` _(int)_: Number of results to return
 
-1. Implement a functionality that, given an ID for either a job or a candidate, retrieves the corresponding document from the ES index.
-2. Implement a functionality that, given a job ID or candidate ID, retrieves the corresponding candidates or jobs that match the user’s specified filters. The return value should contain the following fields - id of the matching documents as `id` and the relevance scores as `relevance_score`.
-    - The filters, available to the user should be at least 2 of the following: `salary_match`, `top_skill_match` and `seniority_match`.
-        - The `salary_match` filter should return jobs that have `gte` `max_salary` than the candidate's `salary_expectation` and should return candidates that have `lte` `salary_expectation` than a job's `max_salary`
-        - The `top_skill_match` filter should return jobs/candidates that share at least min(<n_query_top_skills>, 2) of the top skills with the target document (job or candidate). Here, n_query_top_skills is the total number of top skills for the entity whose relevant matches we want to find. For example, if we are looking for relevant jobs for a given candidate, n_query_top_skills refers to the number of top skills that candidate has.
-        - The `seniority_match` filter should return jobs/candidates where there is a match in the `seniorities` of a job and the `seniority` of a candidate.
-    - The filters should be usable together, concatenated by the `OR` logical operator (`"should"` query in Elasticsearch).
+- **Response:**
+  ```json
+  {
+    "total_results": 5,
+    "results": [
+    {"id": "7","relevance_score": 8}, 
+    { ... }, 
+    { ... } ]
+  }
+  ```
+  
+🔹 **Sample cURL Request:**
+```bash
+curl -X 'POST' \
+  'http://127.0.0.1:8000/search-matches' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "entity": "jobs",
+  "id": 4,
+  "filters": {
+    "salary_match": true,
+    "top_skill_match": true,
+    "seniority_match": true,
+    "minimum_should_match": 2
+  },
+  "from_index": 0,
+  "size": 100
+}'
+```
 
-    💡 The `_es_example.py` file provides examples on query building for all the required filters.  
+---
 
-Finally, update the existing docker-compose.yml file to include your new service, ensuring it can be accessed via HTTP requests. Additionally, provide a report on test coverage as part of your submission.
-In your implementation you should abide to the principles of writing clean code and to the RestAPI design principles.
+## **Running Tests**
 
-🪲 What we will assess:
+### Here is a list of all the tests performed in [test_main.py](https://github.com/akhilpsin/python_developer-20250225T093041Z-001/blob/main/fastapi_service/tests/test_main.py): 
 
-- ❗ clean code
-- ❗ well-defined api
-- ❗ overall project structure
-- 👶 some API tests **need** to be present but do **not** need to be detailed, devote only minimum effort, enough to showcase your understanding on how unit tests should be written.
+#### **Tests for `/get-entity` Endpoint**  
+- **Fetching a valid job or candidate document** (should return a valid response)  
+- **Fetching a document with an invalid ID** (should return a `404` error)  
+- **Fetching a document with an invalid entity type** (should return a `400` error)  
 
-## Good luck! 🚀
+#### **Tests for `/search-matches` Endpoint**  
+- **Searching with a valid entity and filters enabled** (should return valid matches)  
+- **Searching with an invalid entity type** (should return a `400` error)  
+- **Searching with a valid entity but invalid ID** (should return a `404` error)  
+- **Requesting more results than `MAX_RESULT_SIZE`** (should return at most `MAX_RESULT_SIZE` results)  
+- **Searching with all filters disabled** (should return results but stay within the max limit)  
+- **Testing pagination** (fetching results from different pages should return different data)  
+
+To run unit tests, use :
+```bash
+pytest "tests/test_main.py"
+```
+
+---
+
+👉 **Note:** The entire project directory must be run for the API to function correctly.
